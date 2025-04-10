@@ -39,7 +39,7 @@ from .steam import get_steam_id, get_user_data, get_steam_users_info, STEAM_ID_O
 from .utils import image_to_bytes, convert_player_name_to_nickname, simplize_steam_player_data, fetch_avatar
 
 # 插件元数据请参考管理系统（也可以在 metadata.yaml 中配置），这里在 register 装饰器中填写
-@register("astrbot_plugin_steam_info", "YourName", "播报绑定的 Steam 好友状态", "1.0.0", "https://github.com/your_repo")
+@register("astrbot_plugin_steam_info", "w33d", "播报绑定的 Steam 好友状态", "1.0.0", "https://github.com/your_repo")
 class SteamInfoPlugin(Star):
     """
     SteamInfoPlugin 使用 AstrBot 的事件/指令机制实现以下功能：
