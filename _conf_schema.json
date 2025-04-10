@@ -1,0 +1,44 @@
+{
+    "steam_api_key": {
+      "description": "Steam API Key，用于调用 Steam 接口",
+      "type": "string",
+      "hint": "输入你的 Steam API Key",
+      "obvious_hint": true
+    },
+    "proxy": {
+      "description": "请求代理地址",
+      "type": "string",
+      "default": ""
+    },
+    "steam_request_interval": {
+      "description": "Steam 请求间隔（秒）",
+      "type": "int",
+      "default": 300
+    },
+    "steam_broadcast_type": {
+      "description": "Steam 播报类型，可选 all, part, none",
+      "type": "string",
+      "default": "part"
+    },
+    "steam_disable_broadcast_on_startup": {
+      "description": "是否在启动时禁用 Steam 播报",
+      "type": "bool",
+      "default": false
+    },
+    "steam_font_regular_path": {
+      "description": "常规字体路径",
+      "type": "string",
+      "default": "fonts/MiSans-Regular.ttf"
+    },
+    "steam_font_light_path": {
+      "description": "细字体路径",
+      "type": "string",
+      "default": "fonts/MiSans-Light.ttf"
+    },
+    "steam_font_bold_path": {
+      "description": "粗字体路径",
+      "type": "string",
+      "default": "fonts/MiSans-Bold.ttf"
+    }
+  }
+  
