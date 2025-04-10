@@ -31,6 +31,7 @@ from PIL import Image
 # 从 AstrBot 内部 API 导入核心对象及装饰器
 from astrbot.api.star import Context, Star, register
 from astrbot.api.event import filter, AstrMessageEvent
+from astrbot.api import AstrBotConfig
 
 # 假设下面这些内部模块已完成移植或保持不变
 from .draw import draw_start_gaming, draw_player_status, draw_friends_status
