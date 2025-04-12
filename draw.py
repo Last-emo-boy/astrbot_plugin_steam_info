@@ -27,6 +27,7 @@ font_regular_path = None
 font_light_path = None
 font_bold_path = None
 
+'''
 def set_font_paths(regular_path: str, light_path: str, bold_path: str):
     global font_regular_path, font_light_path, font_bold_path
     # 使用当前模块所在目录作为基础目录
@@ -34,7 +35,14 @@ def set_font_paths(regular_path: str, light_path: str, bold_path: str):
     font_regular_path = str((base_dir / regular_path).resolve())
     font_light_path = str((base_dir / light_path).resolve())
     font_bold_path = str((base_dir / bold_path).resolve())
+'''
 
+def set_font_paths(regular_path: str, light_path: str, bold_path: str):
+    global font_regular_path, font_light_path, font_bold_path
+    # 将字体路径硬编码为绝对路径
+    font_regular_path = "/root/AstrBot-master/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Regular.ttf"
+    font_light_path = "/root/AstrBot-master/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Light.ttf"
+    font_bold_path = "/root/AstrBot-master/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Bold.ttf"
 
 def check_font():
     """
