@@ -252,7 +252,10 @@ class SteamInfoPlugin(Star):
             yield event.plain_result("未绑定 Steam ID")
 
     @filter.command("steaminfo", aliases={"steam信息"})
-    async def steam_info(self, event: AstrMessageEvent, plugin_context, *args, **kwargs):
+    async def steam_info(self, *args, **kwargs):
+        # 假设第一个参数为 event
+        event: AstrMessageEvent = args[0]
+        
         # 从事件中获取文本参数（去除指令部分）
         arg_text = event.message_str.strip()
         if arg_text:
