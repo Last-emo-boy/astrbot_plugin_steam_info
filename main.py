@@ -69,7 +69,7 @@ class SteamInfoPlugin(Star):
         self.config = config
 
         # 配置数据文件存放目录，建议存放在 AstrBot/data/plugins/astrbot_plugin_steam_info 下
-        base_dir = Path(os.getcwd()) / "data" / "plugins" / "astrbot_plugin_steam_info"
+        base_dir = Path("root"/ "Astrbot-master" / "data" / "plugins" / "astrbot_plugin_steam_info")
         base_dir.mkdir(parents=True, exist_ok=True)
         self.bind_data_file = base_dir / "bind_data.json"
         self.steam_info_file = base_dir / "steam_info.json"
@@ -92,7 +92,7 @@ class SteamInfoPlugin(Star):
         try:
             check_font()
         except FileNotFoundError as e:
-            self.logger.error(f"{e}, 插件无法正常使用。")
+            logger.error(f"{e}, 插件无法正常使用。")
 
         # 启动定时任务更新 Steam 信息（定时任务周期由配置 steam_request_interval 决定）
         asyncio.create_task(self.schedule_update())
@@ -108,14 +108,14 @@ class SteamInfoPlugin(Star):
             try:
                 return json.loads(file_path.read_text(encoding="utf-8"))
             except Exception as e:
-                self.logger.error(f"读取 {file_path} 出错: {e}")
+                logger.error(f"读取 {file_path} 出错: {e}")
         return {}
 
     def save_json(self, file_path: Union[str, Path], data: Dict[str, Any]) -> None:
         try:
             Path(file_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception as e:
-            self.logger.error(f"保存 {file_path} 出错: {e}")
+            logger.error(f"保存 {file_path} 出错: {e}")
 
     async def schedule_update(self):
         """
@@ -132,7 +132,7 @@ class SteamInfoPlugin(Star):
                     new_players: List[ProcessedPlayer] = self.get_players_by_ids(parent_id, list(steam_ids))
                     await self.broadcast_steam_info(parent_id, old_players, new_players)
             except Exception as e:
-                self.logger.error(f"定时任务更新 Steam 信息出错：{e}")
+                logger.error(f"定时任务更新 Steam 信息出错：{e}")
             await asyncio.sleep(self.config.steam_request_interval)
 
     def get_players_by_ids(self, parent_id: str, steam_ids: List[str]) -> List[ProcessedPlayer]:

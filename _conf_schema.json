@@ -28,17 +28,17 @@
     "steam_font_regular_path": {
       "description": "常规字体路径",
       "type": "string",
-      "default": "fonts/MiSans-Regular.ttf"
+      "default": "/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Regular.ttf"
     },
     "steam_font_light_path": {
       "description": "细字体路径",
       "type": "string",
-      "default": "fonts/MiSans-Light.ttf"
+      "default": "/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Light.ttf"
     },
     "steam_font_bold_path": {
       "description": "粗字体路径",
       "type": "string",
-      "default": "fonts/MiSans-Bold.ttf"
+      "default": "/data/plugins/astrbot_plugin_steam_info/fonts/MiSans-Bold.ttf"
     }
   }
   
