@@ -271,7 +271,7 @@ class SteamInfoPlugin(Star):
                         steam_id = data["steam_id"]
                     break
                 else:
-                    await event.plain_result("该用户未绑定 Steam ID")
+                    yield event.plain_result("该用户未绑定 Steam ID")
                     return
         else:
             parent_id = self.get_parent_id(event)
@@ -279,7 +279,7 @@ class SteamInfoPlugin(Star):
             if parent_id in self.bind_data and user_id in self.bind_data[parent_id]:
                 steam_id = self.bind_data[parent_id][user_id]["steam_id"]
             else:
-                await event.plain_result("未绑定 Steam ID，请先使用 steambind 绑定")
+                yield event.plain_result("未绑定 Steam ID，请先使用 steambind 绑定")
                 return
 
         # 调用 get_user_data 获取用户数据（确保 proxy 已处理为空值的问题）
