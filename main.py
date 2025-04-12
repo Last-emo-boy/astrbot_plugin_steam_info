@@ -269,7 +269,7 @@ class SteamInfoPlugin(Star):
                 for uid, data in self.bind_data.get(parent_id, {}).items():
                     if uid == arg_text:
                         steam_id = data["steam_id"]
-                        break
+                    break
                 else:
                     await event.plain_result("该用户未绑定 Steam ID")
                     return
@@ -298,6 +298,7 @@ class SteamInfoPlugin(Star):
         )
         image_bytes = image_to_bytes(image_obj)
         yield event.image_result(image_bytes)
+
 
 
     @filter.command("steamcheck")
