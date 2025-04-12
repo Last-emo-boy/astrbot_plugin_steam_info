@@ -251,47 +251,42 @@ class SteamInfoPlugin(Star):
         else:
             yield event.plain_result("未绑定 Steam ID")
 
-    @filter.command("steaminfo")
-    async def steam_info(self, event: AstrMessageEvent, args: str):
-        """
-        查看 Steam 主页
-        格式：steaminfo [@某人 或 Steam ID]
-        若参数为空则查看自己绑定信息
-        """
-        parent_id = self.get_parent_id(event)
-        arg = args.strip()
-        steam_id = None
-        # 简单判断：如果参数为数字，则认为是 Steam ID，否则尝试查找绑定用户（此处可增加 @ 解析逻辑）
-        if arg:
-            if arg.isdigit():
-                # 如果传入的数字小于 offset，则当做好友代码进行转换
-                steam_id_int = int(arg)
+    @filter.command("steaminfo", aliases={"steam信息"})
+    async def steam_info(self, event: AstrMessageEvent):
+        # 从事件中获取文本参数（去除指令部分）
+        arg_text = event.message_str.strip()
+        if arg_text:
+            # 如果传入参数是纯数字，则判断大小来转换
+            if arg_text.isdigit():
+                steam_id_int = int(arg_text)
                 if steam_id_int < STEAM_ID_OFFSET:
                     steam_id = str(steam_id_int + STEAM_ID_OFFSET)
                 else:
-                    steam_id = arg
+                    steam_id = arg_text
             else:
-                # 假设传入 @某人的格式，此处从绑定数据中查找其 Steam ID
-                # 这里简单取第一个匹配的用户（实际可进一步解析 At 消息）
+                # 如果非数字，可尝试从绑定数据中查找（此处示例简单）
+                parent_id = self.get_parent_id(event)
                 for uid, data in self.bind_data.get(parent_id, {}).items():
-                    if uid == arg:
+                    if uid == arg_text:
                         steam_id = data["steam_id"]
                         break
-                if not steam_id:
-                    yield event.plain_result("该用户未绑定 Steam ID")
+                else:
+                    await event.plain_result("该用户未绑定 Steam ID")
                     return
         else:
-            # 无参数时，查询发送者自身绑定信息
+            parent_id = self.get_parent_id(event)
             user_id = event.get_sender_id()
             if parent_id in self.bind_data and user_id in self.bind_data[parent_id]:
                 steam_id = self.bind_data[parent_id][user_id]["steam_id"]
             else:
-                yield event.plain_result("未绑定 Steam ID，请先使用 steambind 绑定")
+                await event.plain_result("未绑定 Steam ID，请先使用 steambind 绑定")
                 return
 
-        # 拉取用户 Steam 信息
-        player_data = await get_user_data(int(steam_id), cache_path=self.cache_dir, proxy=self.config.proxy)
-        # 调用绘图函数生成状态图片
+        # 调用 get_user_data 获取用户数据（确保 proxy 已处理为空值的问题）
+        player_data = await get_user_data(int(steam_id), cache_path=self.cache_dir, proxy=self.config.get("proxy") or None)
+    
+        # 使用 PILImage（已别名导入的 PIL.Image）打开图像数据
+        from PIL import Image as PILImage
         image_obj = draw_player_status(
             player_bg=PILImage.open(BytesIO(player_data["background"])),
             player_avatar=PILImage.open(BytesIO(player_data["avatar"])),
@@ -299,10 +294,11 @@ class SteamInfoPlugin(Star):
             player_id=str(int(steam_id) - STEAM_ID_OFFSET),
             player_description=player_data["description"],
             player_last_two_weeks_time=player_data.get("recent_2_week_play_time", ""),
-            player_games=[]  # 根据 player_data["game_data"] 组织绘图数据，可调用 DrawPlayerStatusData 结构转换
+            player_games=[]  # 可根据实际数据构造
         )
         image_bytes = image_to_bytes(image_obj)
         yield event.image_result(image_bytes)
+
 
     @filter.command("steamcheck")
     async def steam_check(self, event: AstrMessageEvent, args: str):
