@@ -24,14 +24,17 @@ import json
 import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from io import BytesIO
+
 
 import httpx
-from PIL import Image
+from PIL import Image as PILImage
 
 # 从 AstrBot 内部 API 导入核心对象及装饰器
 from astrbot.api.star import Context, Star, register
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api import AstrBotConfig
+from astrbot.api.all import *
 
 # 假设下面这些内部模块已完成移植或保持不变
 from .draw import draw_start_gaming, draw_player_status, draw_friends_status
@@ -63,19 +66,21 @@ class SteamInfoPlugin(Star):
         "  steamupdate [名称] [图片]: 更新群信息\n"
         "  steamnickname [昵称]: 设置玩家昵称"
     )
-
-    def __init__(self, context: Context, config: AstrBotConfig):
+    def __init__(self, context: Any, config: Dict[str, Any] = None):
         super().__init__(context)
-        self.config = config
+        self.config = config or {}
 
-        # 配置数据文件存放目录，建议存放在 AstrBot/data/plugins/astrbot_plugin_steam_info 下
-        base_dir = Path("root"/ "Astrbot-master" / "data" / "plugins" / "astrbot_plugin_steam_info")
+        # 定义 logger
+        # logger = logging.getLogger(__name__)
+        
+        # 配置数据文件存放目录，使用当前工作目录下的 "data/plugins/astrbot_plugin_steam_info"
+        base_dir = Path().cwd() / "data" / "plugins" / "astrbot_plugin_steam_info"
         base_dir.mkdir(parents=True, exist_ok=True)
         self.bind_data_file = base_dir / "bind_data.json"
         self.steam_info_file = base_dir / "steam_info.json"
         self.parent_data_file = base_dir / "parent_data.json"
         self.disable_parent_data_file = base_dir / "disable_parent_data.json"
-        # 用于头像等缓存存放目录（确保目录存在）
+        # 用于头像等缓存存放目录
         self.cache_dir = base_dir / "cache"
         self.cache_dir.mkdir(exist_ok=True)
 
@@ -86,22 +91,26 @@ class SteamInfoPlugin(Star):
         self.disable_parent_data: Dict[str, Any] = self.load_json(self.disable_parent_data_file)
 
         # 配置字体（调用 draw 模块中的函数设置字体路径）
-        # 注意：请确保字体路径正确
+        # 字体路径从配置中获取，若未传入则使用默认值
         from .draw import set_font_paths, check_font
-        set_font_paths(config.steam_font_regular_path, config.steam_font_light_path, config.steam_font_bold_path)
+        set_font_paths(
+            self.config.get("steam_font_regular_path", "fonts/MiSans-Regular.ttf"),
+            self.config.get("steam_font_light_path", "fonts/MiSans-Light.ttf"),
+            self.config.get("steam_font_bold_path", "fonts/MiSans-Bold.ttf")
+        )
         try:
             check_font()
         except FileNotFoundError as e:
             logger.error(f"{e}, 插件无法正常使用。")
 
-        # 启动定时任务更新 Steam 信息（定时任务周期由配置 steam_request_interval 决定）
+        # 启动定时任务更新 Steam 信息（定时任务周期由配置项 steam_request_interval 决定）
         asyncio.create_task(self.schedule_update())
 
-        # 如果启动时不禁用播报，则注册启动时的更新任务
-        if not config.steam_disable_broadcast_on_startup:
-            # 当机器人连接后进行一次更新
-            self.context.on_bot_connect(self.update_steam_info)
-
+    @filter.on_astrbot_loaded()
+    async def on_astrbot_loaded(self):
+        # 机器人初始化完成后执行一次更新任务
+        await self.update_steam_info()
+        
     def load_json(self, file_path: Union[str, Path]) -> Dict[str, Any]:
         file_path = Path(file_path)
         if file_path.exists():
@@ -187,7 +196,7 @@ class SteamInfoPlugin(Star):
         from .draw import draw_friends_status  # 生成好友状态图片
         if self.config.steam_broadcast_type in ["all", "part"]:
             # 根据全量或者部分播报生成不同风格图片，调用 draw 模块即可
-            image_obj = draw_friends_status(parent_avatar=Image.open(Path(self.parent_data.get(parent_id, {}).get("avatar", ""))),
+            image_obj = draw_friends_status(parent_avatar=PILImage.open(Path(self.parent_data.get(parent_id, {}).get("avatar", ""))),
                                             parent_name=self.parent_data.get(parent_id, {}).get("name", "Steam"),
                                             data=[])  # 这里 data 请根据实际需求构造好友状态数据（可调用 simplize_steam_player_data 转换）
             image_bytes = image_to_bytes(image_obj)
@@ -284,8 +293,8 @@ class SteamInfoPlugin(Star):
         player_data = await get_user_data(int(steam_id), cache_path=self.cache_dir, proxy=self.config.proxy)
         # 调用绘图函数生成状态图片
         image_obj = draw_player_status(
-            player_bg=Image.open(BytesIO(player_data["background"])),
-            player_avatar=Image.open(BytesIO(player_data["avatar"])),
+            player_bg=PILImage.open(BytesIO(player_data["background"])),
+            player_avatar=PILImage.open(BytesIO(player_data["avatar"])),
             player_name=player_data["player_name"],
             player_id=str(int(steam_id) - STEAM_ID_OFFSET),
             player_description=player_data["description"],
@@ -315,7 +324,7 @@ class SteamInfoPlugin(Star):
         parent_avatar_path = self.parent_data.get(parent_id, {}).get("avatar", "")
         parent_name = self.parent_data.get(parent_id, {}).get("name", "Steam")
         image_obj = draw_friends_status(
-            parent_avatar=Image.open(parent_avatar_path) if parent_avatar_path else Image.new("RGB", (72, 72)),
+            parent_avatar=PILImage.open(parent_avatar_path) if parent_avatar_path else Image.new("RGB", (72, 72)),
             parent_name=parent_name,
             data=[]  # 此处请调用 simplize_steam_player_data 等方法构造好友状态数据
         )
@@ -361,7 +370,7 @@ class SteamInfoPlugin(Star):
                 if response.status_code != 200:
                     yield event.plain_result("获取图片失败")
                     return
-                avatar_image = Image.open(BytesIO(response.content))
+                avatar_image = PILImage.open(BytesIO(response.content))
         except Exception as e:
             yield event.plain_result(f"获取图片错误: {e}")
             return

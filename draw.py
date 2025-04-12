@@ -28,14 +28,13 @@ font_light_path = None
 font_bold_path = None
 
 def set_font_paths(regular_path: str, light_path: str, bold_path: str):
-    """
-    设置字体文件的绝对路径。
-    """
     global font_regular_path, font_light_path, font_bold_path
-    base_dir = Path().cwd()
+    # 使用当前模块所在目录作为基础目录
+    base_dir = Path(__file__).parent
     font_regular_path = str((base_dir / regular_path).resolve())
     font_light_path = str((base_dir / light_path).resolve())
     font_bold_path = str((base_dir / bold_path).resolve())
+
 
 def check_font():
     """
